@@ -31,11 +31,11 @@ func pipelinesWizard(factories component.Factories) map[string]interface{} {
 	out := map[string]interface{}{}
 	for {
 		fmt.Printf("Current pipelines: [%s]\n", strings.Join(keys(out), ", "))
-		name, rpe := singlePipelineWizard(factories)
+		name, rpeWiz := singlePipelineWizard(factories)
 		if name == "" {
 			break
 		}
-		out[name] = rpe
+		out[name] = rpeWiz
 	}
 	return out
 }
@@ -92,8 +92,8 @@ func pipelineTypeWizard(
 	}
 	fmt.Printf("Pipeline %q\n", name)
 	pr := indentingPrinter{level: 1}
-	rpe := rpeWizard(pr, receivers, processors, exporters, extensions)
-	return name, rpe
+	rpeWiz := rpeWizard(pr, receivers, processors, exporters, extensions)
+	return name, rpeWiz
 }
 
 func rpeWizard(pr indentingPrinter, receiverNames []string, processorNames []string, exporterNames []string, extensionNames []string) rpe {
