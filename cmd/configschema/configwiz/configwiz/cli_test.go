@@ -29,9 +29,6 @@ func TestGetComponents(t *testing.T) {
 		},
 	}
 	require.Equal(t, map[string][]string{
-		"receiver":  nil,
-		"processor": nil,
 		"exporter":  {"ccc", "bbb", "aaa"},
-		"extension": nil,
 	}, serviceToComponentNames(m))
 }
