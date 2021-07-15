@@ -30,10 +30,18 @@ func serviceToComponentNames(service map[string]interface{}) map[string][]string
 		m := v.(map[string]interface{})
 		for _, v2 := range m {
 			r := v2.(rpe)
-			out["receiver"] = append(out["receiver"], r.Receivers...)
-			out["processor"] = append(out["processor"], r.Processors...)
-			out["exporter"] = append(out["exporter"], r.Exporters...)
-			out["extension"] = append(out["extension"], r.Extensions...)
+			if r.Receivers != nil {
+				out["receiver"] = append(out["receiver"], r.Receivers...)
+			}
+			if r.Processors != nil {
+				out["processor"] = append(out["processor"], r.Processors...)
+			}
+			if r.Exporters != nil {
+				out["exporter"] = append(out["exporter"], r.Exporters...)
+			}
+			if r.Extensions != nil {
+				out["extension"] = append(out["extension"], r.Extensions...)
+			}
 		}
 	}
 	return out
