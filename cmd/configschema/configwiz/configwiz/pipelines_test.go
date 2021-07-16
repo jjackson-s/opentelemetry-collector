@@ -147,6 +147,18 @@ func buildSinglePipelineWiz(testFact component.Factories, name string) (string, 
 
 }
 
+func TestSinglePipelineWizardFail(t *testing.T) {
+	w := fakeWriter{}
+	r := fakeReaderPipe{userInput: []string{"-1", ""}}
+	io := clio{w.write, r.read}
+	testFact := createTestFactories()
+	_, rpeOut := singlePipelineWizard(io, testFact)
+	expected := "Add pipeline (enter to skip)\n1: Metrics\n2: Traces\n> "
+	expected += "Invalid input. Try again.\n" + expected
+	assert.Equal(t, rpe{}, rpeOut)
+	assert.Equal(t, expected, w.programOutput)
+}
+
 func TestSinglePipelineWizardEmpty(t *testing.T) {
 	w := fakeWriter{}
 	r := fakeReaderPipe{userInput: []string{""}}
