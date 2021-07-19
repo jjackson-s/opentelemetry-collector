@@ -119,6 +119,7 @@ func TestComponentWizardStruct(t *testing.T) {
 	writerStruct := fakeWriter{}
 	ioStruct := clio{writerStruct.write, fakeReader{}.read}
 	cfgStruct := runCompWizard(ioStruct, "struct", "test", "struct", "testing CompWizard Struct")
+
 	struc := cfgStruct.Fields[0].Fields[0]
 	expectedStruct := fmt.Sprintf("%s\n", cfgStruct.Fields[0].Name)
 	expectedStruct = buildExpectedOutput(1, expectedStruct, struc.Name, struc.Type, true, struc.Doc)
@@ -129,6 +130,7 @@ func TestComponentWizardStruct(t *testing.T) {
 func TestComponentWizardPtr(t *testing.T) {
 	writerPtr := fakeWriter{}
 	ioPtr := clio{writerPtr.write, fakeReader{"n"}.read}
+
 	cfgPtr := runCompWizard(ioPtr, "ptr", "test", "ptr", "testing CompWizard ptr")
 	ptr := cfgPtr.Fields[0].Fields[0]
 	expectedPtr := fmt.Sprintf("%s (optional) skip (Y/n)> ", cfgPtr.Fields[0].Name)
