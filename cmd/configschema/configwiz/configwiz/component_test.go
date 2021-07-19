@@ -83,7 +83,7 @@ func buildTestCFGFields(name string, typ string, kind string, defaultStr string,
 	return cfgField
 }
 
-func runCompWizard(io clio, name string, typ string, kind string, defaultStr string, doc string) configschema.Field {
+func runCompWizard(io clio, name string, typ string, kind string, doc string) configschema.Field {
 	const test = "test"
 	cfgField := buildTestCFGFields(
 		name+test,
@@ -109,7 +109,7 @@ func runCompWizard(io clio, name string, typ string, kind string, defaultStr str
 func TestComponentWizardSquash(t *testing.T) {
 	writerSquash := fakeWriter{}
 	ioSquash := clio{writerSquash.write, fakeReader{}.read}
-	cfgSquash := runCompWizard(ioSquash, "squash", "test", "helper", "", "testing compWizardSquash")
+	cfgSquash := runCompWizard(ioSquash, "squash", "test1", "helper", "testing compWizardSquash")
 	squash := cfgSquash.Fields[0].Fields[0]
 	expectedSquash := buildExpectedOutput(0, "", squash.Name, squash.Type, true, squash.Doc)
 	assert.Equal(t, expectedSquash, writerSquash.programOutput)
@@ -118,7 +118,7 @@ func TestComponentWizardSquash(t *testing.T) {
 func TestComponentWizardStruct(t *testing.T) {
 	writerStruct := fakeWriter{}
 	ioStruct := clio{writerStruct.write, fakeReader{}.read}
-	cfgStruct := runCompWizard(ioStruct, "struct", "test", "struct", "", "testing CompWizard Struct")
+	cfgStruct := runCompWizard(ioStruct, "struct", "test2", "struct", "testing CompWizard Struct")
 	struc := cfgStruct.Fields[0].Fields[0]
 	expectedStruct := fmt.Sprintf("%s\n", cfgStruct.Fields[0].Name)
 	expectedStruct = buildExpectedOutput(1, expectedStruct, struc.Name, struc.Type, true, struc.Doc)
@@ -129,9 +129,9 @@ func TestComponentWizardStruct(t *testing.T) {
 func TestComponentWizardPtr(t *testing.T) {
 	writerPtr := fakeWriter{}
 	ioPtr := clio{writerPtr.write, fakeReader{"n"}.read}
-	cfgPtr := runCompWizard(ioPtr, "ptr", "test", "ptr", "", "testing CompWizard ptr")
+	cfgPtr := runCompWizard(ioPtr, "ptr", "test", "ptr", "testing CompWizard ptr")
 	ptr := cfgPtr.Fields[0].Fields[0]
-	expectedPtr := fmt.Sprintf("%s (optional) skip (Y/n)> ", string(cfgPtr.Fields[0].Name))
+	expectedPtr := fmt.Sprintf("%s (optional) skip (Y/n)> ", cfgPtr.Fields[0].Name)
 	expectedPtr = buildExpectedOutput(1, expectedPtr, ptr.Name, ptr.Type, true, ptr.Doc)
 	assert.Equal(t, expectedPtr, writerPtr.programOutput)
 }
@@ -139,7 +139,7 @@ func TestComponentWizardPtr(t *testing.T) {
 func TestComponentWizardHandle(t *testing.T) {
 	writerHandle := fakeWriter{}
 	ioHandle := clio{writerHandle.write, fakeReader{}.read}
-	cfgHandle := runCompWizard(ioHandle, "handle", "test", "helper", "", "testing CompWizard handle")
+	cfgHandle := runCompWizard(ioHandle, "handle", "test3", "helper", "testing CompWizard handle")
 	field := cfgHandle.Fields[0]
 	expectedHandle := buildExpectedOutput(0, "", field.Name, field.Type, false, field.Doc)
 	assert.Equal(t, expectedHandle, writerHandle.programOutput)

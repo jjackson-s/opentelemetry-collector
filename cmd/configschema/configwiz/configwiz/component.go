@@ -30,17 +30,17 @@ func serviceToComponentNames(service map[string]interface{}) map[string][]string
 		m := v.(map[string]interface{})
 		for _, v2 := range m {
 			r := v2.(rpe)
-			for _, receiver := range r.Receivers {
-				out["receiver"] = append(out["receiver"], receiver)
+			if r.Receivers != nil {
+				out["receiver"] = append(out["receiver"], r.Receivers...)
 			}
-			for _, processor := range r.Processors {
-				out["processor"] = append(out["processor"], processor)
+			if r.Processors != nil {
+				out["processor"] = append(out["processor"], r.Processors...)
 			}
-			for _, exporter := range r.Exporters {
-				out["exporter"] = append(out["exporter"], exporter)
+			if r.Exporters != nil {
+				out["exporter"] = append(out["exporter"], r.Exporters...)
 			}
-			for _, extension := range r.Extensions {
-				out["extension"] = append(out["extension"], extension)
+			if r.Extensions != nil {
+				out["extension"] = append(out["extension"], r.Extensions...)
 			}
 		}
 	}
@@ -72,18 +72,19 @@ func componentWizard(io clio, lvl int, f *configschema.Field) map[string]interfa
 	out := map[string]interface{}{}
 	p := io.newIndentingPrinter(lvl)
 	for _, field := range f.Fields {
-		if field.Name == "squash" {
+		switch {
+		case field.Name == "squash":
 			componentWizard(io, lvl, field)
-		} else if field.Kind == "struct" {
+		case field.Kind == "struct":
 			p.println(field.Name)
 			out[field.Name] = componentWizard(io, lvl+1, field)
-		} else if field.Kind == "ptr" {
+		case field.Kind == "ptr":
 			p.print(fmt.Sprintf("%s (optional) skip (Y/n)> ", field.Name))
 			in := io.read("")
 			if in == "n" {
 				out[field.Name] = componentWizard(io, lvl+1, field)
 			}
-		} else {
+		default:
 			handleField(io, p, field, out)
 		}
 	}
