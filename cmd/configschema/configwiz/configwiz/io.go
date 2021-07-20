@@ -14,12 +14,12 @@
 
 package configwiz
 
-type clio struct {
-	write func(s string)
-	read  func(defaultVal string) string
+type Clio struct {
+	Write func(s string)
+	Read  func(defaultVal string) string
 }
 
-func (io clio) newIndentingPrinter(lvl int) (p indentingPrinter2) {
-	p = indentingPrinter2{level: lvl, write: io.write}
+func (io Clio) newIndentingPrinter(lvl int) (p indentingPrinter2) {
+	p = indentingPrinter2{level: lvl, write: io.Write}
 	return
 }

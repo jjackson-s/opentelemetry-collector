@@ -15,16 +15,21 @@
 package configwiz
 
 import (
-	"fmt"
-
 	"gopkg.in/yaml.v2"
 
 	"go.opentelemetry.io/collector/cmd/configschema/configschema"
 	"go.opentelemetry.io/collector/component"
 )
 
-func CLI(factories component.Factories) {
-	io := clio{printLine, readline}
+type out struct {
+	receiver interface{}
+	processor interface{}
+	exporter interface{}
+	extension interface{}
+	service interface{}
+}
+
+func CLI(io Clio, factories component.Factories) {
 	service := map[string]interface{}{
 		// this is the overview (top-level) part of the wizard, where the user just creates the pipelines
 		"pipelines": pipelinesWizard(io, factories),
@@ -36,8 +41,20 @@ func CLI(factories component.Factories) {
 	for componentGroup, names := range serviceToComponentNames(service) {
 		handleComponent(factories, m, componentGroup, names, dr)
 	}
-
+	pr := io.newIndentingPrinter(0)
+	//rs , _  := yaml.Marshal(m["receivers"])
+	//ps, _ := yaml.Marshal(m["processors"])
+	//exps, _ := yaml.Marshal(m["exporters"])
+	//exts, _ := yaml.Marshal(m["extensions"])
+	val := out{m["receivers"], m["processors"], m["exporters"], m["extensions"], m["service"]	}
+	val2, _ := yaml.Marshal(val)
 	bytes, _ := yaml.Marshal(m)
-	fmt.Println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-	fmt.Println(string(bytes))
+	pr.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+	pr.println(string(bytes))
+	pr.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+	//pr.println(string(rs))
+	//pr.println(string(ps))
+	//pr.println(string(exps))
+	//pr.println(string(exts))
+	pr.println(string(val2))
 }

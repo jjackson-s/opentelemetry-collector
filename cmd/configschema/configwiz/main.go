@@ -20,9 +20,11 @@ import (
 )
 
 func main() {
+	io := configwiz.Clio{Write: configwiz.PrintLine, Read: configwiz.Readline}
 	c, err := defaultcomponents.Components()
+
 	if err != nil {
 		panic(err)
 	}
-	configwiz.CLI(c)
+	configwiz.CLI(io, c)
 }

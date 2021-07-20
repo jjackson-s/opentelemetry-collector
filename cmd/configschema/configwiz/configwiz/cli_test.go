@@ -17,7 +17,10 @@ package configwiz
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"go.opentelemetry.io/collector/service/defaultcomponents"
 )
 
 func TestGetComponents(t *testing.T) {
@@ -31,4 +34,15 @@ func TestGetComponents(t *testing.T) {
 	require.Equal(t, map[string][]string{
 		"exporter": {"ccc", "bbb", "aaa"},
 	}, serviceToComponentNames(m))
+}
+
+func TestCli(t *testing.T) {
+	//testFact := CreateTestFactories()
+	testFact, _ := defaultcomponents.Components()
+
+	w := fakeWriter{}
+	r := fakeReaderPipe{userInput: []string{"1", "", "0", "", "", "0", "", "", "0", "", "",  "0", ""}}
+	io := Clio{w.write, r.read}
+	CLI(io, testFact)
+	assert.Equal(t, "", w.programOutput)
 }

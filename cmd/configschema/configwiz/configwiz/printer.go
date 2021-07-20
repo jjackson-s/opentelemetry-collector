@@ -19,7 +19,7 @@ import (
 	"strings"
 )
 
-func printLine(s string) {
+func PrintLine(s string) {
 	fmt.Print(s)
 }
 
