@@ -15,6 +15,8 @@
 package configschema
 
 import (
+	"go/build"
+	"os"
 	"path"
 	"reflect"
 	"strings"
@@ -54,5 +56,84 @@ func NewDirResolver(srcRoot string, moduleName string) DirResolver {
 // PackageDir accepts a Type and returns its package dir.
 func (dr DirResolver) PackageDir(t reflect.Type) string {
 	pkg := strings.TrimPrefix(t.PkgPath(), dr.ModuleName+"/")
+	dir := dr.localPackageDir(pkg)
+	_, err := os.ReadDir(dir)
+	if err != nil {
+		dir = dr.externalPackageDir(pkg)
+	}
+	return dir
+}
+
+func isRoot(directories []os.DirEntry) bool {
+	for _, file := range directories {
+		if file.Name() == "go.mod" {
+			return true
+		}
+	}
+	return false
+}
+
+func (dr DirResolver) FindGoModPath() string {
+	cwd, err := os.Getwd()
+	out := "."
+	og := cwd
+	for {
+		if err != nil {
+			panic(err)
+		}
+
+		val, _ := os.ReadDir(cwd)
+		if isRoot(val) {
+			os.Chdir(og)
+			return out
+		}
+		os.Chdir("..")
+		out += "/.."
+		cwd, err = os.Getwd()
+	}
+
+	return ""
+}
+
+func (dr DirResolver) externalPackageDir(pkg string) string {
+	line := dr.grepMod(path.Join(dr.FindGoModPath(), "go.mod"), pkg)
+	v := extractVersion(line)
+	goPath := os.Getenv("GOPATH")
+	if goPath == "" {
+		goPath = build.Default.GOPATH
+	}
+	return buildExternalPath(goPath, pkg, v)
+}
+
+func (dr DirResolver) localPackageDir(pkg string) string {
 	return path.Join(dr.SrcRoot, pkg)
+}
+
+func (dr DirResolver) grepMod(goModPath string, pkg string) string {
+	file, _ := os.ReadFile(goModPath)
+	goModFile := strings.Split(string(file), "\n")
+	otel := ""
+	for _, line := range goModFile {
+		if strings.Contains(line, pkg) {
+			return line
+		}
+		if strings.Contains(line, "go.opentelemetry.io/collector ") {
+			otel = line
+		}
+	}
+	return otel
+}
+
+func extractVersion(line string) string {
+	split := strings.Split(line, " ")
+	return split[len(split)-1]
+}
+
+func buildExternalPath(goPath, pkg, v string) string {
+	if strings.HasPrefix(v, "../") {
+		return path.Join(v, pkg)
+	} else if strings.HasPrefix(v, "./") {
+		return v
+	}
+	return path.Join(goPath, "pkg", "mod", pkg+"@"+v)
 }

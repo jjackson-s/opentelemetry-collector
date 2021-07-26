@@ -1,3 +1,7 @@
+clusterName: my-cluster
+splunkRealm: us0
+splunkAccessToken: yIYRzRPaVaS3nlL5vL4gjQ
+
 extensions:
   health_check:
   pprof:
