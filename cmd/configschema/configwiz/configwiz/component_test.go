@@ -19,9 +19,9 @@ import (
 	"strings"
 	"testing"
 
-	"go.opentelemetry.io/collector/cmd/configschema/configschema"
-
 	"github.com/stretchr/testify/assert"
+
+	"go.opentelemetry.io/collector/cmd/configschema/configschema"
 )
 
 type fakeReader struct {
