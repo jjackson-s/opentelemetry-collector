@@ -56,15 +56,70 @@ func NewDirResolver(srcRoot string, moduleName string) DirResolver {
 // PackageDir accepts a Type and returns its package dir.
 func (dr DirResolver) PackageDir(t reflect.Type) string {
 	pkg := strings.TrimPrefix(t.PkgPath(), dr.ModuleName+"/")
-	dir := dr.localPackageDir(pkg)
+	dir := localPackageDir(dr, pkg)
 	_, err := os.ReadDir(dir)
 	if err != nil {
-		dir = dr.externalPackageDir(pkg)
+		dir = externalPackageDir(dr, pkg)
 	}
 	return dir
 }
 
-func isRoot(directories []os.DirEntry) bool {
+func localPackageDir(dr DirResolver, pkg string) string {
+	return path.Join(dr.SrcRoot, pkg)
+}
+
+func externalPackageDir(dr DirResolver, pkg string) string {
+	line := grepMod(path.Join(dr.FindGoModDir(), "go.mod"), pkg)
+	v := extractVersion(line)
+	goPath := os.Getenv("GOPATH")
+	if goPath == "" {
+		goPath = build.Default.GOPATH
+	}
+	pkgPath := buildExternalPath(goPath, pkg, v)
+	if _, err := os.ReadDir(pkgPath); err != nil {
+		panic(err)
+	}
+	return pkgPath
+}
+
+func grepMod(goModPath string, pkg string) string {
+	file, _ := os.ReadFile(goModPath)
+	goModFile := strings.Split(string(file), "\n")
+	pkgPath := ""
+	for _, line := range goModFile {
+		if strings.Contains(line, pkg) {
+			pkgPath = line
+		}
+		if strings.Contains(line, "go.opentelemetry.io/collector ") {
+			pkgPath = line
+		}
+		if strings.Contains(line, "replace") && strings.Contains(line, pkg) {
+			pkgPath = line
+		}
+	}
+	return pkgPath
+}
+
+func (dr DirResolver) FindGoModDir() string {
+	cwd0, err := os.Getwd()
+	cwd := cwd0
+	out := "."
+	for {
+		if err != nil {
+			panic(err)
+		}
+		val, _ := os.ReadDir(cwd)
+		if isGoModDir(val) {
+			os.Chdir(cwd0)
+			return out
+		}
+		os.Chdir("..")
+		out += "/.."
+		cwd, err = os.Getwd()
+	}
+}
+
+func isGoModDir(directories []os.DirEntry) bool {
 	for _, file := range directories {
 		if file.Name() == "go.mod" {
 			return true
@@ -73,70 +128,16 @@ func isRoot(directories []os.DirEntry) bool {
 	return false
 }
 
-func (dr DirResolver) FindGoModPath() string {
-	cwd, err := os.Getwd()
-	out := "."
-	og := cwd
-	for {
-		if err != nil {
-			panic(err)
-		}
-
-		val, _ := os.ReadDir(cwd)
-		if isRoot(val) {
-			os.Chdir(og)
-			return out
-		}
-		os.Chdir("..")
-		out += "/.."
-		cwd, err = os.Getwd()
-	}
-
-	return ""
-}
-
-func (dr DirResolver) externalPackageDir(pkg string) string {
-	line := dr.grepMod(path.Join(dr.FindGoModPath(), "go.mod"), pkg)
-	v := extractVersion(line)
-	goPath := os.Getenv("GOPATH")
-	if goPath == "" {
-		goPath = build.Default.GOPATH
-	}
-	return buildExternalPath(goPath, pkg, v)
-}
-
-func (dr DirResolver) localPackageDir(pkg string) string {
-	return path.Join(dr.SrcRoot, pkg)
-}
-
-func (dr DirResolver) grepMod(goModPath string, pkg string) string {
-	file, _ := os.ReadFile(goModPath)
-	goModFile := strings.Split(string(file), "\n")
-	otel := ""
-	for _, line := range goModFile {
-		if strings.Contains(line, pkg) {
-			otel = line
-		}
-		if strings.Contains(line, "go.opentelemetry.io/collector ") {
-			otel = line
-		}
-		if strings.Contains(line, "replace") && strings.Contains(line, pkg) {
-			otel = line
-		}
-	}
-	return otel
-}
-
 func extractVersion(line string) string {
 	split := strings.Split(line, " ")
 	return split[len(split)-1]
 }
 
 func buildExternalPath(goPath, pkg, v string) string {
-	if strings.HasPrefix(v, "../") {
-		return path.Join(v, pkg)
-	} else if strings.HasPrefix(v, "./") {
+	if strings.HasPrefix(v, "./") {
 		return v
+	} else if strings.HasPrefix(v, "../") {
+		return path.Join(v, pkg)
 	}
 	return path.Join(goPath, "pkg", "mod", pkg+"@"+v)
 }
