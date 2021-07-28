@@ -108,8 +108,8 @@ func (dr DirResolver) FindGoModDir() string {
 		if err != nil {
 			panic(err)
 		}
-		val, _ := os.ReadDir(cwd)
-		if isGoModDir(val) {
+		dir, _ := os.ReadDir(cwd)
+		if isGoModDir(dir) {
 			os.Chdir(cwd0)
 			return out
 		}
