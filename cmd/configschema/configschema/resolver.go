@@ -115,9 +115,12 @@ func (dr DirResolver) grepMod(goModPath string, pkg string) string {
 	otel := ""
 	for _, line := range goModFile {
 		if strings.Contains(line, pkg) {
-			return line
+			otel = line
 		}
 		if strings.Contains(line, "go.opentelemetry.io/collector ") {
+			otel = line
+		}
+		if strings.Contains(line, "replace") && strings.Contains(line, pkg) {
 			otel = line
 		}
 	}
