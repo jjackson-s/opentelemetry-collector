@@ -51,8 +51,6 @@ var metricsFile = &File{
 		summaryDataPoint,
 		quantileValuesSlice,
 		quantileValues,
-		intExemplarSlice,
-		intExemplar,
 		exemplarSlice,
 		exemplar,
 	},
@@ -130,6 +128,7 @@ var intGauge = &messageValueStruct{
 	structName:     "IntGauge",
 	description:    "// IntGauge represents the type of a int scalar metric that always exports the \"current value\" for every data point.",
 	originFullName: "otlpmetrics.IntGauge",
+	deprecated:     "Deprecated: Use Gauge instead.",
 	fields: []baseField{
 		&sliceField{
 			fieldName:       "DataPoints",
@@ -156,6 +155,7 @@ var intSum = &messageValueStruct{
 	structName:     "IntSum",
 	description:    "// IntSum represents the type of a numeric int scalar metric that is calculated as a sum of all reported measurements over a time interval.",
 	originFullName: "otlpmetrics.IntSum",
+	deprecated:     "Deprecated: Use Sum instead.",
 	fields: []baseField{
 		aggregationTemporalityField,
 		isMonotonicField,
@@ -218,12 +218,12 @@ var intDataPoint = &messageValueStruct{
 	structName:     "IntDataPoint",
 	description:    "// IntDataPoint is a single data point in a timeseries that describes the time-varying values of a scalar int metric.",
 	originFullName: "otlpmetrics.IntDataPoint",
+	deprecated:     "Deprecated: Use NumberDataPoint instead.",
 	fields: []baseField{
 		labelsField,
 		startTimeField,
 		timeField,
 		valueInt64Field,
-		intExemplarsField,
 	},
 }
 
@@ -325,29 +325,6 @@ var quantileValues = &messageValueStruct{
 	},
 }
 
-var intExemplarSlice = &sliceOfValues{
-	structName: "IntExemplarSlice",
-	element:    intExemplar,
-}
-
-var intExemplar = &messageValueStruct{
-	structName: "IntExemplar",
-	description: "// IntExemplar is a sample input int measurement.\n//\n" +
-		"// Exemplars also hold information about the environment when the measurement was recorded,\n" +
-		"// for example the span and trace ID of the active span when the exemplar was recorded.",
-
-	originFullName: "otlpmetrics.IntExemplar",
-	fields: []baseField{
-		timeField,
-		valueInt64Field,
-		&sliceField{
-			fieldName:       "FilteredLabels",
-			originFieldName: "FilteredLabels",
-			returnSlice:     stringMap,
-		},
-	},
-}
-
 var exemplarSlice = &sliceOfValues{
 	structName: "ExemplarSlice",
 	element:    exemplar,
@@ -396,12 +373,6 @@ var labelsField = &sliceField{
 	fieldName:       "LabelsMap",
 	originFieldName: "Labels",
 	returnSlice:     stringMap,
-}
-
-var intExemplarsField = &sliceField{
-	fieldName:       "Exemplars",
-	originFieldName: "Exemplars",
-	returnSlice:     intExemplarSlice,
 }
 
 var exemplarsField = &sliceField{

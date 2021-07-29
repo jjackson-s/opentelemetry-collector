@@ -167,6 +167,7 @@ func (es ResourceMetricsSlice) RemoveIf(f func(ResourceMetrics) bool) {
 //
 // Must use NewResourceMetrics function to create new instances.
 // Important: zero-initialized instance is not valid for use.
+//
 type ResourceMetrics struct {
 	orig *otlpmetrics.ResourceMetrics
 }
@@ -342,6 +343,7 @@ func (es InstrumentationLibraryMetricsSlice) RemoveIf(f func(InstrumentationLibr
 //
 // Must use NewInstrumentationLibraryMetrics function to create new instances.
 // Important: zero-initialized instance is not valid for use.
+//
 type InstrumentationLibraryMetrics struct {
 	orig *otlpmetrics.InstrumentationLibraryMetrics
 }
@@ -518,6 +520,7 @@ func (es MetricSlice) RemoveIf(f func(Metric) bool) {
 //
 // Must use NewMetric function to create new instances.
 // Important: zero-initialized instance is not valid for use.
+//
 type Metric struct {
 	orig *otlpmetrics.Metric
 }
@@ -578,6 +581,7 @@ func (ms Metric) CopyTo(dest Metric) {
 //
 // Must use NewIntGauge function to create new instances.
 // Important: zero-initialized instance is not valid for use.
+// Deprecated: Use Gauge instead.
 type IntGauge struct {
 	orig *otlpmetrics.IntGauge
 }
@@ -610,6 +614,7 @@ func (ms IntGauge) CopyTo(dest IntGauge) {
 //
 // Must use NewGauge function to create new instances.
 // Important: zero-initialized instance is not valid for use.
+//
 type Gauge struct {
 	orig *otlpmetrics.Gauge
 }
@@ -642,6 +647,7 @@ func (ms Gauge) CopyTo(dest Gauge) {
 //
 // Must use NewIntSum function to create new instances.
 // Important: zero-initialized instance is not valid for use.
+// Deprecated: Use Sum instead.
 type IntSum struct {
 	orig *otlpmetrics.IntSum
 }
@@ -696,6 +702,7 @@ func (ms IntSum) CopyTo(dest IntSum) {
 //
 // Must use NewSum function to create new instances.
 // Important: zero-initialized instance is not valid for use.
+//
 type Sum struct {
 	orig *otlpmetrics.Sum
 }
@@ -750,6 +757,7 @@ func (ms Sum) CopyTo(dest Sum) {
 //
 // Must use NewHistogram function to create new instances.
 // Important: zero-initialized instance is not valid for use.
+//
 type Histogram struct {
 	orig *otlpmetrics.Histogram
 }
@@ -793,6 +801,7 @@ func (ms Histogram) CopyTo(dest Histogram) {
 //
 // Must use NewSummary function to create new instances.
 // Important: zero-initialized instance is not valid for use.
+//
 type Summary struct {
 	orig *otlpmetrics.Summary
 }
@@ -962,6 +971,7 @@ func (es IntDataPointSlice) RemoveIf(f func(IntDataPoint) bool) {
 //
 // Must use NewIntDataPoint function to create new instances.
 // Important: zero-initialized instance is not valid for use.
+// Deprecated: Use NumberDataPoint instead.
 type IntDataPoint struct {
 	orig *otlpmetrics.IntDataPoint
 }
@@ -1012,18 +1022,12 @@ func (ms IntDataPoint) SetValue(v int64) {
 	(*ms.orig).Value = v
 }
 
-// Exemplars returns the Exemplars associated with this IntDataPoint.
-func (ms IntDataPoint) Exemplars() IntExemplarSlice {
-	return newIntExemplarSlice(&(*ms.orig).Exemplars)
-}
-
 // CopyTo copies all properties from the current struct to the dest.
 func (ms IntDataPoint) CopyTo(dest IntDataPoint) {
 	ms.LabelsMap().CopyTo(dest.LabelsMap())
 	dest.SetStartTimestamp(ms.StartTimestamp())
 	dest.SetTimestamp(ms.Timestamp())
 	dest.SetValue(ms.Value())
-	ms.Exemplars().CopyTo(dest.Exemplars())
 }
 
 // NumberDataPointSlice logically represents a slice of NumberDataPoint.
@@ -1170,6 +1174,7 @@ func (es NumberDataPointSlice) RemoveIf(f func(NumberDataPoint) bool) {
 //
 // Must use NewNumberDataPoint function to create new instances.
 // Important: zero-initialized instance is not valid for use.
+//
 type NumberDataPoint struct {
 	orig *otlpmetrics.NumberDataPoint
 }
@@ -1398,6 +1403,7 @@ func (es HistogramDataPointSlice) RemoveIf(f func(HistogramDataPoint) bool) {
 //
 // Must use NewHistogramDataPoint function to create new instances.
 // Important: zero-initialized instance is not valid for use.
+//
 type HistogramDataPoint struct {
 	orig *otlpmetrics.HistogramDataPoint
 }
@@ -1639,6 +1645,7 @@ func (es SummaryDataPointSlice) RemoveIf(f func(SummaryDataPoint) bool) {
 //
 // Must use NewSummaryDataPoint function to create new instances.
 // Important: zero-initialized instance is not valid for use.
+//
 type SummaryDataPoint struct {
 	orig *otlpmetrics.SummaryDataPoint
 }
@@ -1858,6 +1865,7 @@ func (es ValueAtQuantileSlice) RemoveIf(f func(ValueAtQuantile) bool) {
 //
 // Must use NewValueAtQuantile function to create new instances.
 // Important: zero-initialized instance is not valid for use.
+//
 type ValueAtQuantile struct {
 	orig *otlpmetrics.SummaryDataPoint_ValueAtQuantile
 }
@@ -1897,181 +1905,6 @@ func (ms ValueAtQuantile) SetValue(v float64) {
 func (ms ValueAtQuantile) CopyTo(dest ValueAtQuantile) {
 	dest.SetQuantile(ms.Quantile())
 	dest.SetValue(ms.Value())
-}
-
-// IntExemplarSlice logically represents a slice of IntExemplar.
-//
-// This is a reference type. If passed by value and callee modifies it, the
-// caller will see the modification.
-//
-// Must use NewIntExemplarSlice function to create new instances.
-// Important: zero-initialized instance is not valid for use.
-type IntExemplarSlice struct {
-	// orig points to the slice otlpmetrics.IntExemplar field contained somewhere else.
-	// We use pointer-to-slice to be able to modify it in functions like EnsureCapacity.
-	orig *[]otlpmetrics.IntExemplar
-}
-
-func newIntExemplarSlice(orig *[]otlpmetrics.IntExemplar) IntExemplarSlice {
-	return IntExemplarSlice{orig}
-}
-
-// NewIntExemplarSlice creates a IntExemplarSlice with 0 elements.
-// Can use "EnsureCapacity" to initialize with a given capacity.
-func NewIntExemplarSlice() IntExemplarSlice {
-	orig := []otlpmetrics.IntExemplar(nil)
-	return IntExemplarSlice{&orig}
-}
-
-// Len returns the number of elements in the slice.
-//
-// Returns "0" for a newly instance created with "NewIntExemplarSlice()".
-func (es IntExemplarSlice) Len() int {
-	return len(*es.orig)
-}
-
-// At returns the element at the given index.
-//
-// This function is used mostly for iterating over all the values in the slice:
-//   for i := 0; i < es.Len(); i++ {
-//       e := es.At(i)
-//       ... // Do something with the element
-//   }
-func (es IntExemplarSlice) At(ix int) IntExemplar {
-	return newIntExemplar(&(*es.orig)[ix])
-}
-
-// CopyTo copies all elements from the current slice to the dest.
-func (es IntExemplarSlice) CopyTo(dest IntExemplarSlice) {
-	srcLen := es.Len()
-	destCap := cap(*dest.orig)
-	if srcLen <= destCap {
-		(*dest.orig) = (*dest.orig)[:srcLen:destCap]
-	} else {
-		(*dest.orig) = make([]otlpmetrics.IntExemplar, srcLen)
-	}
-
-	for i := range *es.orig {
-		newIntExemplar(&(*es.orig)[i]).CopyTo(newIntExemplar(&(*dest.orig)[i]))
-	}
-}
-
-// EnsureCapacity is an operation that ensures the slice has at least the specified capacity.
-// 1. If the newCap <= cap then no change in capacity.
-// 2. If the newCap > cap then the slice capacity will be expanded to equal newCap.
-//
-// Here is how a new IntExemplarSlice can be initialized:
-//   es := NewIntExemplarSlice()
-//   es.EnsureCapacity(4)
-//   for i := 0; i < 4; i++ {
-//       e := es.AppendEmpty()
-//       // Here should set all the values for e.
-//   }
-func (es IntExemplarSlice) EnsureCapacity(newCap int) {
-	oldCap := cap(*es.orig)
-	if newCap <= oldCap {
-		return
-	}
-
-	newOrig := make([]otlpmetrics.IntExemplar, len(*es.orig), newCap)
-	copy(newOrig, *es.orig)
-	*es.orig = newOrig
-}
-
-// AppendEmpty will append to the end of the slice an empty IntExemplar.
-// It returns the newly added IntExemplar.
-func (es IntExemplarSlice) AppendEmpty() IntExemplar {
-	*es.orig = append(*es.orig, otlpmetrics.IntExemplar{})
-	return es.At(es.Len() - 1)
-}
-
-// MoveAndAppendTo moves all elements from the current slice and appends them to the dest.
-// The current slice will be cleared.
-func (es IntExemplarSlice) MoveAndAppendTo(dest IntExemplarSlice) {
-	if *dest.orig == nil {
-		// We can simply move the entire vector and avoid any allocations.
-		*dest.orig = *es.orig
-	} else {
-		*dest.orig = append(*dest.orig, *es.orig...)
-	}
-	*es.orig = nil
-}
-
-// RemoveIf calls f sequentially for each element present in the slice.
-// If f returns true, the element is removed from the slice.
-func (es IntExemplarSlice) RemoveIf(f func(IntExemplar) bool) {
-	newLen := 0
-	for i := 0; i < len(*es.orig); i++ {
-		if f(es.At(i)) {
-			continue
-		}
-		if newLen == i {
-			// Nothing to move, element is at the right place.
-			newLen++
-			continue
-		}
-		(*es.orig)[newLen] = (*es.orig)[i]
-		newLen++
-	}
-	// TODO: Prevent memory leak by erasing truncated values.
-	*es.orig = (*es.orig)[:newLen]
-}
-
-// IntExemplar is a sample input int measurement.
-//
-// Exemplars also hold information about the environment when the measurement was recorded,
-// for example the span and trace ID of the active span when the exemplar was recorded.
-//
-// This is a reference type, if passed by value and callee modifies it the
-// caller will see the modification.
-//
-// Must use NewIntExemplar function to create new instances.
-// Important: zero-initialized instance is not valid for use.
-type IntExemplar struct {
-	orig *otlpmetrics.IntExemplar
-}
-
-func newIntExemplar(orig *otlpmetrics.IntExemplar) IntExemplar {
-	return IntExemplar{orig: orig}
-}
-
-// NewIntExemplar creates a new empty IntExemplar.
-//
-// This must be used only in testing code since no "Set" method available.
-func NewIntExemplar() IntExemplar {
-	return newIntExemplar(&otlpmetrics.IntExemplar{})
-}
-
-// Timestamp returns the timestamp associated with this IntExemplar.
-func (ms IntExemplar) Timestamp() Timestamp {
-	return Timestamp((*ms.orig).TimeUnixNano)
-}
-
-// SetTimestamp replaces the timestamp associated with this IntExemplar.
-func (ms IntExemplar) SetTimestamp(v Timestamp) {
-	(*ms.orig).TimeUnixNano = uint64(v)
-}
-
-// Value returns the value associated with this IntExemplar.
-func (ms IntExemplar) Value() int64 {
-	return (*ms.orig).Value
-}
-
-// SetValue replaces the value associated with this IntExemplar.
-func (ms IntExemplar) SetValue(v int64) {
-	(*ms.orig).Value = v
-}
-
-// FilteredLabels returns the FilteredLabels associated with this IntExemplar.
-func (ms IntExemplar) FilteredLabels() StringMap {
-	return newStringMap(&(*ms.orig).FilteredLabels)
-}
-
-// CopyTo copies all properties from the current struct to the dest.
-func (ms IntExemplar) CopyTo(dest IntExemplar) {
-	dest.SetTimestamp(ms.Timestamp())
-	dest.SetValue(ms.Value())
-	ms.FilteredLabels().CopyTo(dest.FilteredLabels())
 }
 
 // ExemplarSlice logically represents a slice of Exemplar.
@@ -2202,6 +2035,7 @@ func (es ExemplarSlice) RemoveIf(f func(Exemplar) bool) {
 //
 // Must use NewExemplar function to create new instances.
 // Important: zero-initialized instance is not valid for use.
+//
 type Exemplar struct {
 	orig *otlpmetrics.Exemplar
 }
