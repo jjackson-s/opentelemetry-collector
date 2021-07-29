@@ -57,19 +57,20 @@ func NewDirResolver(srcRoot string, moduleName string) DirResolver {
 func (dr DirResolver) PackageDir(t reflect.Type) string {
 	pkg := strings.TrimPrefix(t.PkgPath(), dr.ModuleName+"/")
 	dir := localPackageDir(dr, pkg)
-	_, err := os.ReadDir(dir)
-	if err != nil {
+	if _, err := os.ReadDir(dir); err != nil {
 		dir = externalPackageDir(dr, pkg)
 	}
 	return dir
 }
 
+// localPackageDir returns a path to a local package
 func localPackageDir(dr DirResolver, pkg string) string {
 	return path.Join(dr.SrcRoot, pkg)
 }
 
+// externalPackageDir returns a path to an external package
 func externalPackageDir(dr DirResolver, pkg string) string {
-	line := grepMod(path.Join(dr.FindGoModDir(), "go.mod"), pkg)
+	line := grepMod(path.Join(dr.SrcRoot, "go.mod"), pkg)
 	v := extractVersion(line)
 	goPath := os.Getenv("GOPATH")
 	if goPath == "" {
@@ -82,62 +83,39 @@ func externalPackageDir(dr DirResolver, pkg string) string {
 	return pkgPath
 }
 
+// grepMod returns the line within go.mod associated with the package
+// we are looking for
 func grepMod(goModPath string, pkg string) string {
 	file, _ := os.ReadFile(goModPath)
 	goModFile := strings.Split(string(file), "\n")
-	pkgPath := ""
+	var pkgPath string
 	for _, line := range goModFile {
-		if strings.Contains(line, pkg) {
+		switch {
+		case strings.Contains(line, pkg):
 			pkgPath = line
-		}
-		if strings.Contains(line, "go.opentelemetry.io/collector ") {
+		case strings.Contains(line, DefaultModule+" "):
 			pkgPath = line
-		}
-		if strings.Contains(line, "replace") && strings.Contains(line, pkg) {
+		case strings.Contains(line, "replace") && strings.Contains(line, pkg):
 			pkgPath = line
 		}
 	}
 	return pkgPath
 }
 
-func (dr DirResolver) FindGoModDir() string {
-	cwd0, err := os.Getwd()
-	cwd := cwd0
-	out := "."
-	for {
-		if err != nil {
-			panic(err)
-		}
-		dir, _ := os.ReadDir(cwd)
-		if isGoModDir(dir) {
-			os.Chdir(cwd0)
-			return out
-		}
-		os.Chdir("..")
-		out += "/.."
-		cwd, err = os.Getwd()
-	}
-}
-
-func isGoModDir(directories []os.DirEntry) bool {
-	for _, file := range directories {
-		if file.Name() == "go.mod" {
-			return true
-		}
-	}
-	return false
-}
-
+// extractVersion gives us the version of the package from go.mod
 func extractVersion(line string) string {
 	split := strings.Split(line, " ")
 	return split[len(split)-1]
 }
 
+// buildExternalPath builds a path to a package that is not local to directory
 func buildExternalPath(goPath, pkg, v string) string {
-	if strings.HasPrefix(v, "./") {
+	switch {
+	case strings.HasPrefix(v, "./"):
 		return v
-	} else if strings.HasPrefix(v, "../") {
-		return path.Join(v, pkg)
+	case strings.HasPrefix(v, "../"):
+		return path.Join(v, strings.TrimPrefix(pkg, DefaultModule))
+	default:
+		return path.Join(goPath, "pkg", "mod", pkg+"@"+v)
 	}
-	return path.Join(goPath, "pkg", "mod", pkg+"@"+v)
 }
