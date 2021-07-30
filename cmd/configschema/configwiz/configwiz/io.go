@@ -19,6 +19,7 @@ type Clio struct {
 	Read  func(defaultVal string) string
 }
 
+// newIndentingPrinter creates a newIndentingPrinter object with io's write function
 func (io Clio) newIndentingPrinter(lvl int) (p indentingPrinter2) {
 	p = indentingPrinter2{level: lvl, write: io.Write}
 	return

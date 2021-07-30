@@ -27,7 +27,7 @@ import (
 const defaultFileName = "out.yaml"
 
 func CLI(io Clio, factories component.Factories) {
-	fileName := getFileName(io)
+	//fileName := getFileName(io)
 	service := map[string]interface{}{
 		// this is the overview (top-level) part of the wizard, where the user just creates the pipelines
 		"pipelines": pipelinesWizard(io, factories),
@@ -40,12 +40,66 @@ func CLI(io Clio, factories component.Factories) {
 	for componentGroup, names := range serviceToComponentNames(service) {
 		handleComponent(factories, m, componentGroup, names, dr)
 	}
-	bytes, _ := yaml.Marshal(m)
+	out := buildYamlFile(m)
 	fmt.Println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-	fmt.Println(string(bytes))
-	writeFile(fileName, bytes)
+	fmt.Println(out)
+	//writeFile(fileName, bytes)
 }
 
+// buildYamlFile outputs a .yaml file based on the configuration we created
+func buildYamlFile(m map[string]interface{}) string {
+	rv := ""
+	out := output{
+		map[string]interface{}{
+			"receivers": m["receivers"],
+		},
+		map[string]interface{}{
+			"processors": m["processors"],
+		},
+		map[string]interface{}{
+			"exporters" : m["exporters"],
+		},
+		map[string]interface{}{
+			"extensions": m["extensions"],
+		},
+		map[string]interface{}{
+			"service" : m["service"],
+		},
+	}
+	bytes, err := yaml.Marshal(out.receivers)
+	if err != nil {
+		panic(err)
+	}
+	rv += string(bytes)
+
+	bytes, err = yaml.Marshal(out.processors)
+	if err != nil {
+		panic(err)
+	}
+	rv += string(bytes)
+
+	bytes, err = yaml.Marshal(out.exporters)
+	if err != nil {
+		panic(err)
+	}
+	rv += string(bytes)
+
+	bytes, err = yaml.Marshal(out.extensions)
+	if err != nil {
+		panic(err)
+	}
+	rv += string(bytes)
+
+	bytes, err = yaml.Marshal(out.service)
+	if err != nil {
+		panic(err)
+	}
+	rv += string(bytes)
+	return rv
+}
+
+// getFileName prompts the user to input a fileName, and returns the value that they chose.
+// defaults to out.yaml
 func getFileName(io Clio) string {
 	pr := io.newIndentingPrinter(0)
 	pr.println("Name of file (default out.yaml):")
@@ -58,4 +112,12 @@ func getFileName(io Clio) string {
 		fileName += ".yaml"
 	}
 	return fileName
+}
+
+type output struct {
+	receivers interface{}
+	processors interface{}
+	exporters interface{}
+	extensions interface{}
+	service interface{}
 }
