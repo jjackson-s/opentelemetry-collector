@@ -15,8 +15,10 @@
 package configwiz
 
 import (
+	"os"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -34,5 +36,16 @@ func TestGetComponents(t *testing.T) {
 }
 
 func TestCli(t *testing.T) {
+	w := fakeWriter{}
+	r := fakeReaderPipe{userInput: []string{"", "1", "", "0", "", "", "0", "", "", "0", "", "", "0", ""}}
+	io := Clio{w.write, r.read}
+	CLI(io, createTestFactories())
+	outPut, err := os.ReadFile(defaultFileName)
+	if err != nil {
+		panic(err)
+	}
+	assert.Equal(t, "", outPut)
+	assert.Equal(t, "",  w.programOutput)
+	os.Remove(defaultFileName)
 
 }

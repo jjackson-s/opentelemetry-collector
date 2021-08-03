@@ -23,12 +23,12 @@ import (
 
 func TestWriteFile(t *testing.T) {
 	const fileName = "out.txt"
-	fileContent := []byte{'h', 'e', 'l', 'l', 'o'}
+	fileContent := "hello"
 	writeFile(fileName, fileContent)
 	outPut, err := os.ReadFile(fileName)
 	if err != nil {
 		panic(err)
 	}
-	assert.Equal(t, fileContent, outPut)
+	assert.Equal(t, fileContent, string(outPut))
 	os.Remove(fileName)
 }

@@ -44,12 +44,12 @@ func (p indentingPrinter2) doPrint(s string, frmt string) {
 }
 
 // writeFile creates a file named fileName in the cwd, and writes given string to fileName
-func writeFile(fileName string, bytes []byte) {
+func writeFile(fileName string, s string) {
 	file, err := os.Create(fileName)
 	if err != nil {
 		panic(err)
 	}
-	if _, err = file.Write(bytes); err != nil {
+	if _, err = file.WriteString(s); err != nil {
 		panic(err)
 	}
 	if err = file.Close(); err != nil {

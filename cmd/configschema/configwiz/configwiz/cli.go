@@ -27,7 +27,7 @@ import (
 const defaultFileName = "out.yaml"
 
 func CLI(io Clio, factories component.Factories) {
-	//fileName := getFileName(io)
+	fileName := getFileName(io)
 	service := map[string]interface{}{
 		// this is the overview (top-level) part of the wizard, where the user just creates the pipelines
 		"pipelines": pipelinesWizard(io, factories),
@@ -40,10 +40,10 @@ func CLI(io Clio, factories component.Factories) {
 	for componentGroup, names := range serviceToComponentNames(service) {
 		handleComponent(factories, m, componentGroup, names, dr)
 	}
-	out := buildYamlFile(m)
+	bytes := buildYamlFile(m)
 	fmt.Println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-	fmt.Println(out)
-	//writeFile(fileName, bytes)
+	fmt.Println(bytes)
+	writeFile(fileName, bytes)
 }
 
 // buildYamlFile outputs a .yaml file based on the configuration we created

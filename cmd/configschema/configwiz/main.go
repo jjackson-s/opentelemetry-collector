@@ -24,6 +24,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	io := configwiz.Clio{configwiz.PrintLine, configwiz.Readline}
+	io := configwiz.Clio{Write: configwiz.PrintLine, Read: configwiz.Readline}
 	configwiz.CLI(io, c)
 }
