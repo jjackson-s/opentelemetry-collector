@@ -51,10 +51,6 @@ func (p indentingPrinter) println(s string) {
 	p.doPrint(s, "%s%s\n")
 }
 
-func (p indentingPrinter) print(s string) {
-	p.doPrint(s, "%s%s")
-}
-
 func (p indentingPrinter) doPrint(s string, frmt string) {
 	const tabSize = 4
 	indent := p.level * tabSize
